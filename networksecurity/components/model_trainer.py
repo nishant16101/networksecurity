@@ -26,6 +26,8 @@ from sklearn.ensemble import (
 import mlflow
 from urllib.parse import urlparse
 
+import dagshub
+dagshub.init(repo_owner='nishantkumbhar812', repo_name='networksecurity', mlflow=True)
 
 
 
@@ -41,7 +43,8 @@ class ModelTrainer:
             raise NetworkSecurityException(e,sys)
         
     def track_mlflow(self,best_model,classificationmetric):
-        
+        mlflow.set_registry_uri("https://dagshub.com/nishant812/networksecurity.mlflow")
+        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():
             f1_score=classificationmetric.f1_score
             precision_score=classificationmetric.precision_score
@@ -53,7 +56,13 @@ class ModelTrainer:
             mlflow.log_metric("precision",precision_score)
             mlflow.log_metric("recall_score",recall_score)
             mlflow.sklearn.log_model(best_model,"model")
-            
+            # Model registry does not work with file store
+            if tracking_url_type_store != "file":
+
+                
+                mlflow.sklearn.log_model(best_model, "model", registered_model_name=best_model)
+            else:
+                mlflow.sklearn.log_model(best_model, "model")
 
 
         
