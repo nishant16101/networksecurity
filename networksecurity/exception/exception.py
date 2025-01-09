@@ -14,7 +14,7 @@ class NetworkSecurityException(Exception):
 if __name__ == "__main__":
     try:
         logging.info("Enter the try block")
-        a = 1/0
+        a = 1
         print("This will not be  printed",a)
     except Exception as e:
         raise NetworkSecurityException(e,sys)

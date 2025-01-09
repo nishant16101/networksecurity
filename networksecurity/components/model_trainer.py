@@ -27,9 +27,11 @@ import mlflow
 from urllib.parse import urlparse
 
 import dagshub
-dagshub.init(repo_owner='nishantkumbhar812', repo_name='networksecurity', mlflow=True)
+#dagshub.init(repo_owner='nishantkumbhar812', repo_name='networksecurity', mlflow=True)
 
-
+os.environ["MLFLOW_TRACKING_URI"]="https://dagshub.com/nishantkumbhar812/networksecurity.mlflow"
+os.environ["MLFLOW_TRACKING_USERNAME"]="nishantkumbhar812"
+os.environ["MLFLOW_TRACKING_PASSWORD"]="d5998f04037fb8c2880fa9f024654800013752ac"
 
 
 
@@ -42,27 +44,28 @@ class ModelTrainer:
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
-    def track_mlflow(self,best_model,classificationmetric):
-        mlflow.set_registry_uri("https://dagshub.com/nishant812/networksecurity.mlflow")
+    def track_mlflow(self, best_model, classificationmetric):
+        mlflow.set_registry_uri("https://dagshub.com/nishantkumbhar812/networksecurity.mlflow")
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():
-            f1_score=classificationmetric.f1_score
-            precision_score=classificationmetric.precision_score
-            recall_score=classificationmetric.recall_score
+            f1_score = classificationmetric.f1_score
+            precision_score = classificationmetric.precision_score
+            recall_score = classificationmetric.recall_score
 
-            
+            # Log metrics
+            mlflow.log_metric("f1_score", f1_score)
+            mlflow.log_metric("precision", precision_score)
+            mlflow.log_metric("recall_score", recall_score)
 
-            mlflow.log_metric("f1_score",f1_score)
-            mlflow.log_metric("precision",precision_score)
-            mlflow.log_metric("recall_score",recall_score)
-            mlflow.sklearn.log_model(best_model,"model")
-            # Model registry does not work with file store
+            # Log the model
+            mlflow.sklearn.log_model(best_model, "model")
+        
+            # Register the model if not using file store
             if tracking_url_type_store != "file":
-
-                
-                mlflow.sklearn.log_model(best_model, "model", registered_model_name=best_model)
+                mlflow.sklearn.log_model(best_model, "model", registered_model_name="Best_Model")
             else:
                 mlflow.sklearn.log_model(best_model, "model")
+
 
 
         
@@ -144,15 +147,6 @@ class ModelTrainer:
                              )
         logging.info(f"Model trainer artifact: {model_trainer_artifact}")
         return model_trainer_artifact
-
-
-        
-
-
-       
-    
-    
-        
     def initiate_model_trainer(self)->ModelTrainerArtifact:
         try:
             train_file_path = self.data_transformation_artifact.transformed_train_file_path

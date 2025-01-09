@@ -9,4 +9,6 @@ scipy
 dill
 pyaml
 mlflow
+fastapi
+uvicorn
 ##-e .
